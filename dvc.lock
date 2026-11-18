@@ -1,0 +1,155 @@
+schema: '2.0'
+stages:
+  ingest:
+    cmd: python src/ingest.py
+    deps:
+    - path: params.yaml
+      hash: md5
+      md5: 20ccce1549a7620608888483774d6b46
+      size: 870
+    - path: src/ingest.py
+      hash: md5
+      md5: 3b87e08f4e07891d08b919f76adebb03
+      size: 9362
+    params:
+      params.yaml:
+        data.dataset: ag_news
+        data.max_samples: 10000
+    outs:
+    - path: data/raw/test_raw.csv
+      hash: md5
+      md5: a5b45b9afe260254e884acc3383c1959
+      size: 249842
+    - path: data/raw/train_raw.csv
+      hash: md5
+      md5: 638c6a72051fb5abef03f94938913ec2
+      size: 2488499
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/raw/test_raw.csv
+      hash: md5
+      md5: a5b45b9afe260254e884acc3383c1959
+      size: 249842
+    - path: data/raw/train_raw.csv
+      hash: md5
+      md5: 638c6a72051fb5abef03f94938913ec2
+      size: 2488499
+    - path: params.yaml
+      hash: md5
+      md5: 20ccce1549a7620608888483774d6b46
+      size: 870
+    - path: src/preprocess.py
+      hash: md5
+      md5: 9cf76d80feb15b08c170c27c3c0980f2
+      size: 4407
+    params:
+      params.yaml:
+        data.random_state: 42
+        data.test_size: 0.15
+        data.val_size: 0.15
+    outs:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: b90ca4bb854e33303ab96dc8fe8e120d
+      size: 408995
+    - path: data/processed/train.csv
+      hash: md5
+      md5: f0739e5a9f30144a5d360285f4f242f3
+      size: 1917870
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 3d9a6eb127a9bd38da5802b76bf8ce1c
+      size: 407976
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed/train.csv
+      hash: md5
+      md5: f0739e5a9f30144a5d360285f4f242f3
+      size: 1917870
+    - path: data/processed/val.csv
+      hash: md5
+      md5: 3d9a6eb127a9bd38da5802b76bf8ce1c
+      size: 407976
+    - path: params.yaml
+      hash: md5
+      md5: 20ccce1549a7620608888483774d6b46
+      size: 870
+    - path: src/train.py
+      hash: md5
+      md5: 069864d8ea96c4798bd130e0dd589681
+      size: 17273
+    params:
+      params.yaml:
+        mlflow.experiment_name: news-classification-mlops
+        model:
+          type: tfidf_lr
+          max_features: 50000
+          ngram_range:
+          - 1
+          - 2
+        training:
+          learning_rate: 0.01
+          C: 1.0
+          max_iter: 1000
+          class_weight: balanced
+    outs:
+    - path: models/
+      hash: md5
+      md5: e0a70dcd6b022512e5157a6b0ac39510.dir
+      size: 9603769
+      nfiles: 3
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: b90ca4bb854e33303ab96dc8fe8e120d
+      size: 408995
+    - path: models/
+      hash: md5
+      md5: e0a70dcd6b022512e5157a6b0ac39510.dir
+      size: 9603769
+      nfiles: 3
+    - path: params.yaml
+      hash: md5
+      md5: 20ccce1549a7620608888483774d6b46
+      size: 870
+    - path: src/evaluate.py
+      hash: md5
+      md5: 9dc24d40217a3bd9b4d9073dc57c672f
+      size: 4775
+    outs:
+    - path: reports/final_confusion_matrix.png
+      hash: md5
+      md5: 57cfe8b2feed25e088c09eeb48dcf1d4
+      size: 97250
+    - path: reports/final_metrics.json
+      hash: md5
+      md5: e82a0f1cb4d24c9d91947bcb984f86f2
+      size: 110
+  monitor:
+    cmd: python monitoring/monitor.py
+    deps:
+    - path: data/processed/test.csv
+      hash: md5
+      md5: b90ca4bb854e33303ab96dc8fe8e120d
+      size: 408995
+    - path: data/processed/train.csv
+      hash: md5
+      md5: f0739e5a9f30144a5d360285f4f242f3
+      size: 1917870
+    - path: monitoring/monitor.py
+      hash: md5
+      md5: 53da27ba75c9d99d5328fe947a1c6ddd
+      size: 12162
+    - path: params.yaml
+      hash: md5
+      md5: 20ccce1549a7620608888483774d6b46
+      size: 870
+    outs:
+    - path: reports/drift_report.html
+      hash: md5
+      md5: a5f299d9bfaa46875c73b62c8fd82dae
+      size: 4282492
