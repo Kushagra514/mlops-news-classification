@@ -55,7 +55,7 @@ def _load_model():
     import mlflow
     import mlflow.sklearn
 
-    tracking_uri = PARAMS["mlflow"]["tracking_uri"]
+    tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", PARAMS["mlflow"]["tracking_uri"])
     model_name   = PARAMS["mlflow"]["registered_model_name"]
     stage        = PARAMS["serving"]["model_stage"]
 
@@ -78,7 +78,7 @@ def _load_model():
 
         MODEL_STATE.update({
             "pipeline"     : pipeline,
-            "model_version": version,
+            "model_version": str(version),
             "metrics"      : metrics,
             "loaded_at"    : time.strftime("%Y-%m-%dT%H:%M:%SZ"),
         })
@@ -102,9 +102,16 @@ def _load_model():
 
     # Infer label names
     try:
-        MODEL_STATE["label_names"] = list(
-            MODEL_STATE["pipeline"].classes_.astype(str)
-        )
+        proc_train = ROOT / "data" / "processed" / "train.csv"
+        if proc_train.exists():
+            import pandas as pd
+            df_map = pd.read_csv(proc_train, usecols=["label", "label_name"]).drop_duplicates()
+            mapping = dict(zip(df_map["label"], df_map["label_name"]))
+            MODEL_STATE["label_names"] = [
+                mapping.get(c, str(c)) for c in MODEL_STATE["pipeline"].classes_
+            ]
+        else:
+            MODEL_STATE["label_names"] = list(MODEL_STATE["pipeline"].classes_.astype(str))
     except Exception:
         MODEL_STATE["label_names"] = [str(i) for i in range(10)]
 
