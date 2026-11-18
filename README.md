@@ -43,7 +43,7 @@ It classifies news articles into four categories (`World`, `Sports`, `Business`,
 |---|---|
 | **Reproducible experiments** | DVC + MLflow: anyone can re-run the pipeline and get identical results |
 | **Automated model selection** | Best-performing model is auto-promoted to Production via an accuracy gate |
-| **71 automated tests** | Covers data integrity, model behaviour, and API correctness |
+| **74 automated tests** | Covers data integrity, model behaviour, and API correctness |
 | **4-job GitHub Actions CI/CD** | Every push to `main` triggers a full train → test → Docker push cycle |
 | **FastAPI serving** | REST API with confidence scores, batch inference, and model metadata |
 | **Evidently AI drift monitoring** | Detects distribution shift in incoming text against training reference data |
@@ -65,7 +65,7 @@ It classifies news articles into four categories (`World`, `Sports`, `Business`,
   │ HuggingFace  │    │                   │    │  push to main                 │
   │ AG News ─────┼───►│  MLflow :5001     │    │       │                       │
   │ dataset      │    │                   │    │       ▼                       │
-  │              │    │  Experiments      │    │  lint & test (71 tests)       │
+  │              │    │  Experiments      │    │  lint & test (74 tests)       │
   │ data/        │    │  ├─ run 1         │    │       │                       │
   │ ├─ raw/      │    │  ├─ run 2         │    │       ▼                       │
   │ └─ processed/│    │  └─ run 3         │    │  train & evaluate             │
@@ -423,7 +423,7 @@ curl http://localhost:8000/health
 
 | Run | Model | N-gram | Val Accuracy | Val F1 |
 |---|---|:---:|:---:|:---:|
-| `tfidf_lr_baseline` | Logistic Regression | (1,1) | 0.8861 | 0.8853 |
+| `tfidf_lr_baseline` | Logistic Regression | (1,1) | 0.8855 | 0.8847 |
 | `tfidf_lr_bigrams` | Logistic Regression | (1,2) | 0.8891 | 0.8885 |
 | `tfidf_svm_bigrams` | **Calibrated SVM** | **(1,2)** | **0.8903** | **0.8898** |
 
