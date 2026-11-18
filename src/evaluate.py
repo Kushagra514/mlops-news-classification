@@ -7,6 +7,7 @@ on the test set. Saves a full evaluation report to reports/.
 Run: python src/evaluate.py
 """
 
+import os
 import json
 import logging
 import yaml
@@ -37,7 +38,7 @@ PARAMS = yaml.safe_load(open(ROOT / "params.yaml"))
 def load_production_model():
     """Load Production model from MLflow Registry, fallback to latest local pkl."""
     model_name = PARAMS["mlflow"]["registered_model_name"]
-    tracking_uri = PARAMS["mlflow"]["tracking_uri"]
+    tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", PARAMS["mlflow"]["tracking_uri"])
     mlflow.set_tracking_uri(tracking_uri)
 
     try:

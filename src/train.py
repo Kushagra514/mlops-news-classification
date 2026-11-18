@@ -79,13 +79,13 @@ def build_pipeline(config: Dict[str, Any]) -> Pipeline:
             max_iter     = config["max_iter"],
             class_weight = config.get("class_weight", "balanced"),
             solver       = "saga",
-            n_jobs       = -1,
         )
     elif model_type == "tfidf_svm":
         svc = LinearSVC(
             C            = config["C"],
             max_iter     = config["max_iter"],
             class_weight = config.get("class_weight", "balanced"),
+            dual         = "auto",
         )
         classifier = CalibratedClassifierCV(svc, cv=3)   # adds predict_proba
     else:
@@ -219,6 +219,7 @@ def run_experiment(
             signature      = signature,
             input_example  = input_ex,
             registered_model_name = None,  # we register the best one later
+            serialization_format = mlflow.sklearn.SERIALIZATION_FORMAT_CLOUDPICKLE,
         )
 
         # ── Save locally too ──────────────────────────────────────────────────
@@ -330,7 +331,7 @@ EXPERIMENT_CONFIGS = [
 
 def main():
     # ── MLflow setup ──────────────────────────────────────────────────────────
-    tracking_uri = PARAMS["mlflow"]["tracking_uri"]
+    tracking_uri = os.environ.get("MLFLOW_TRACKING_URI", PARAMS["mlflow"]["tracking_uri"])
     exp_name     = PARAMS["mlflow"]["experiment_name"]
 
     mlflow.set_tracking_uri(tracking_uri)
