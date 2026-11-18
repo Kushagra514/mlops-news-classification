@@ -64,7 +64,8 @@ class TestSchema:
         assert not missing, f"Missing columns in test: {missing}"
 
     def test_text_column_is_string(self, train_df):
-        assert train_df["text"].dtype == object, "text column should be string/object dtype"
+        assert pd.api.types.is_string_dtype(train_df["text"]) or train_df["text"].dtype == object, \
+               "text column should be string/object dtype"
 
     def test_label_column_is_numeric(self, train_df):
         assert pd.api.types.is_integer_dtype(train_df["label"]) or \
@@ -72,7 +73,7 @@ class TestSchema:
                "label column should be numeric"
 
     def test_label_name_is_string(self, train_df):
-        assert train_df["label_name"].dtype == object
+        assert pd.api.types.is_string_dtype(train_df["label_name"]) or train_df["label_name"].dtype == object
 
 
 # ──────────────────────────────────────────────────────────────────────────────
