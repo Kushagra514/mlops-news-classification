@@ -17,7 +17,7 @@ import pandas as pd
 import numpy as np
 
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
 log = logging.getLogger(__name__)
@@ -25,18 +25,32 @@ log = logging.getLogger(__name__)
 ROOT   = Path(__file__).resolve().parent.parent
 PARAMS = yaml.safe_load(open(ROOT / "params.yaml"))
 
+# Pandas 3.x compatibility shim for Evidently legacy modules
+if not hasattr(pd.core.dtypes.common, "infer_dtype_from_object"):
+    pd.core.dtypes.common.infer_dtype_from_object = lambda obj: pd.api.types.infer_dtype([obj], skipna=True)
+
 try:
-    from evidently.report import Report
-    from evidently.metric_preset import DataDriftPreset, DataQualityPreset
-    from evidently.metrics import (
-        DatasetDriftMetric,
-        DatasetMissingValuesMetric,
-        ColumnDriftMetric,
-        ColumnSummaryMetric,
-    )
+    try:
+        from evidently.report import Report
+        from evidently.metric_preset import DataDriftPreset, DataQualityPreset
+        from evidently.metrics import (
+            DatasetDriftMetric,
+            DatasetMissingValuesMetric,
+            ColumnDriftMetric,
+            ColumnSummaryMetric,
+        )
+    except (ImportError, ModuleNotFoundError):
+        from evidently.legacy.report import Report
+        from evidently.legacy.metric_preset import DataDriftPreset, DataQualityPreset
+        from evidently.legacy.metrics import (
+            DatasetDriftMetric,
+            DatasetMissingValuesMetric,
+            ColumnDriftMetric,
+            ColumnSummaryMetric,
+        )
     EVIDENTLY_AVAILABLE = True
-except ImportError:
-    log.warning("Evidently not installed — pip install evidently")
+except Exception as _e:
+    log.warning(f"Evidently not available ({_e}) — will use fallback PSI drift detection")
     EVIDENTLY_AVAILABLE = False
 
 
@@ -131,7 +145,7 @@ def run_drift_report(
             dataset_drifted = False
 
         summary = {
-            "timestamp"         : datetime.utcnow().isoformat(),
+            "timestamp"         : datetime.now(timezone.utc).isoformat(),
             "reference_rows"    : len(reference_df),
             "current_rows"      : len(current_df),
             "n_drifted_columns" : n_drifted,
@@ -188,7 +202,7 @@ th{{background:#f0f0f0}}</style>
 </head>
 <body>
 <h1>📊 Data Drift Report (PSI)</h1>
-<p>Generated: {datetime.utcnow().isoformat()} UTC</p>
+<p>Generated: {datetime.now(timezone.utc).isoformat()} UTC</p>
 <p>Threshold: {threshold}</p>
 <table>
 <tr><th>Feature</th><th>PSI Score</th><th>Status</th></tr>
@@ -202,7 +216,7 @@ th{{background:#f0f0f0}}</style>
     log.info(f"📊  Fallback drift report saved → {report_path}")
 
     return {
-        "timestamp"         : datetime.utcnow().isoformat(),
+        "timestamp"         : datetime.now(timezone.utc).isoformat(),
         "reference_rows"    : len(ref_feat),
         "current_rows"      : len(cur_feat),
         "n_drifted_columns" : len(drifted),
