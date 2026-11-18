@@ -28,6 +28,11 @@ Reproducible experiments · Automated CI/CD · Containerized serving · Live dri
 
 ---
 
+> **Fork Provenance Notice**
+> This repository is a personal fork and extension of [MOHD-OMER/mlops-pipeline](https://github.com/MOHD-OMER/mlops-pipeline). The original implementation and authorship are credited to the upstream project. This fork contains independently documented improvements and experiments.
+
+---
+
 ## Overview
 
 This project is a **complete MLOps reference implementation** — a system for taking a machine learning idea from raw data all the way to a monitored, production-serving API.
